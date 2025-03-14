@@ -47,8 +47,8 @@ function Validator(options) {
           message: `${formElement.name} thành công`,
           type: "success",
         });
-        if (formElement.name == 'đăng ký') {
-          console.log(123);
+        if (formElement.name == "đăng ký") {
+          // đăng ký thành công thì chuyển form đăng nhập
 
           const container = document.querySelector(".container");
           container.classList.remove("active");
@@ -142,20 +142,19 @@ Validator.confirmed = function (selector, getConfirmValue) {
     },
   };
 };
-//Ham reset form khi switch giữa các form 
-function resetForm(idForm = '') {
+//Ham reset form khi switch giữa các form
+function resetForm(idForm = "") {
   const formElement = document.getElementById(idForm);
   if (formElement) {
     formElement.reset();
 
-    const invalidElements = formElement.querySelectorAll('.invalid');    // Xoa hết các màu đỏ thông báo lỗi 
-    invalidElements.forEach(element => element.classList.remove('invalid'));
+    const invalidElements = formElement.querySelectorAll(".invalid"); // Xoa hết các màu đỏ thông báo lỗi
+    invalidElements.forEach((element) => element.classList.remove("invalid"));
 
-    const errorMessages = formElement.querySelectorAll('.form-message');  // Xoá các message báo lỗi
-    errorMessages.forEach(error => error.innerText = '');
+    const errorMessages = formElement.querySelectorAll(".form-message"); // Xoá các message báo lỗi
+    errorMessages.forEach((error) => (error.innerText = ""));
   }
 }
-
 
 // switch login-signup
 
@@ -185,7 +184,6 @@ function toast({ title = "", message = "", type = "success" }) {
   if (mainElement) {
     const toast = document.createElement("div");
     toast.classList.add("toast", `toast--${type}`);
-    console.log(toast);
 
     toast.innerHTML = `<div class="toast__icon">
                 <i class="${icon}"></i>
