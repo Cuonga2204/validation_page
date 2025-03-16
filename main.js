@@ -1,19 +1,22 @@
-function Validator(options) {
-  var selectorRules = {}; //Biến để lưu các rules làm để không bị ghi đè 2 rules lên cùng một element
+function validator(options) {
+  //Biến để lưu các rules làm để không bị ghi đè 2 rules lên cùng một element
+  let selectorRules = {};
 
-  function validate(inputElement, rule) {
-    var errorElement =
+  const validate = (inputElement, rule) => {
+    const errorElement =
       inputElement.parentElement.querySelector(".form-message");
-    var rules = selectorRules[rule.selector];
-    var errorMessage;
+    const rules = selectorRules[rule.selector];
+    let errorMessage;
 
-    for (var i = 0; i < rules.length; i++) {
+    for (let i = 0; i < rules.length; i++) {
       errorMessage = rules[i](inputElement.value);
-      if (errorMessage) break; //xuất hiện lỗi thì hiện ngay message
+      //xuất hiện lỗi thì hiện ngay message
+      if (errorMessage) break;
     }
 
     if (errorMessage) {
-      errorElement.innerText = errorMessage; // thêm màu đỏ và hiện message lỗi ở dưới input
+      // thêm màu đỏ và hiện message lỗi ở dưới input
+      errorElement.innerText = errorMessage;
       inputElement.parentElement.classList.add("invalid");
       errorElement.parentElement.classList.add("invalid");
     } else {
@@ -23,19 +26,18 @@ function Validator(options) {
     }
 
     return !errorMessage;
-  }
+  };
 
-  var formElement = document.querySelector(options.form);
+  const formElement = document.querySelector(options.form);
 
   if (formElement) {
-    formElement.onsubmit = function (e) {
-      // Xử lý khi ấn submit
-
-      var formValid = true;
+    // Xử lý khi ấn submit
+    formElement.onsubmit = (e) => {
+      let formValid = true;
       e.preventDefault();
       options.rules.forEach((rule) => {
-        var inputElement = formElement.querySelector(rule.selector);
-        var isValid = validate(inputElement, rule);
+        const inputElement = formElement.querySelector(rule.selector);
+        const isValid = validate(inputElement, rule);
         if (!isValid) {
           formValid = false;
         }
@@ -49,10 +51,11 @@ function Validator(options) {
         });
         if (formElement.name == "đăng ký") {
           // đăng ký thành công thì chuyển form đăng nhập
-
-          const container = document.querySelector(".container");
-          container.classList.remove("active");
-          resetForm("form-sign-up");
+          setTimeout(() => {
+            const container = document.querySelector(".container");
+            container.classList.remove("active");
+            resetForm("form-sign-up");
+          }, 1500);
         }
       } else {
         toast({
@@ -62,9 +65,9 @@ function Validator(options) {
         });
       }
     };
-    options.rules.forEach(function (rule) {
-      var inputElement = formElement.querySelector(rule.selector);
-      var errorElement =
+    options.rules.forEach((rule) => {
+      const inputElement = formElement.querySelector(rule.selector);
+      const errorElement =
         inputElement.parentElement.querySelector(".form-message");
 
       if (!selectorRules[rule.selector]) {
@@ -74,12 +77,12 @@ function Validator(options) {
       selectorRules[rule.selector].push(rule.test);
 
       if (inputElement) {
-        inputElement.onblur = function () {
-          //Khi blur vào thì check lỗi
+        //Khi blur vào thì check lỗi
+        inputElement.onblur = () => {
           validate(inputElement, rule);
         };
         //khi nhập input thì bỏ màu đỏ và message lỗi đi
-        inputElement.oninput = function () {
+        inputElement.oninput = () => {
           inputElement.parentElement.classList.remove("invalid");
           errorElement.innerText = "";
         };
@@ -90,20 +93,20 @@ function Validator(options) {
 
 // Các function để test lỗi
 
-Validator.isRequire = function (selector) {
+validator.isRequire = (selector) => {
   return {
     selector: selector,
-    test: function (value) {
+    test: (value) => {
       return value.trim() ? undefined : "Vui lòng nhập trường này";
     },
   };
 };
 
-Validator.isValidName = function (selector) {
+validator.isValidName = (selector) => {
   return {
     selector: selector,
-    test: function (value) {
-      var regex = /^[A-Za-zÀ-ỹ\s]+$/;
+    test: (value) => {
+      const regex = /^[A-Za-zÀ-ỹ\s]+$/;
       return regex.test(value)
         ? undefined
         : "Tên không được chứa số hoặc ký tự đặc biệt";
@@ -111,50 +114,52 @@ Validator.isValidName = function (selector) {
   };
 };
 
-Validator.isEmail = function (selector) {
+validator.isEmail = (selector) => {
   return {
     selector: selector,
-    test: function (value) {
-      var regex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
+    test: (value) => {
+      const regex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
       return regex.test(value) ? undefined : "Email không hợp lệ";
     },
   };
 };
 
-Validator.isStrongPassword = function (selector) {
+validator.isStrongPassword = (selector) => {
   return {
     selector: selector,
-    test: function (value) {
-      var regex = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\W).{8,}$/;
+    test: (value) => {
+      const regex = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\W).{8,}$/;
       return regex.test(value)
         ? undefined
         : "Mật khẩu ít nhất 8 ký tự, có chữ hoa, chữ thường, ký tự đặc biệt";
     },
   };
 };
-Validator.confirmed = function (selector, getConfirmValue) {
+validator.confirmed = (selector, getConfirmValue) => {
   return {
     selector: selector,
-    test: function (value) {
+    test: (value) => {
       return value === getConfirmValue()
         ? undefined
-        : "Giá trị nhập không chính xác ";
+        : "Không khớp với mật khẩu";
     },
   };
 };
 //Ham reset form khi switch giữa các form
-function resetForm(idForm = "") {
+const resetForm = (idForm = "") => {
   const formElement = document.getElementById(idForm);
   if (formElement) {
     formElement.reset();
 
-    const invalidElements = formElement.querySelectorAll(".invalid"); // Xoa hết các màu đỏ thông báo lỗi
+    // Xoa hết các màu đỏ thông báo lỗi
+    const invalidElements = formElement.querySelectorAll(".invalid");
     invalidElements.forEach((element) => element.classList.remove("invalid"));
 
-    const errorMessages = formElement.querySelectorAll(".form-message"); // Xoá các message báo lỗi
+    // Xoá các message báo lỗi
+    const errorMessages = formElement.querySelectorAll(".form-message");
     errorMessages.forEach((error) => (error.innerText = ""));
   }
-}
+};
 
 // switch login-signup
 
@@ -174,7 +179,7 @@ loginBtn.addEventListener("click", () => {
 
 //toast thông báo khi thành công hay thất bại sau khi submit
 
-function toast({ title = "", message = "", type = "success" }) {
+const toast = ({ title = "", message = "", type = "success" }) => {
   const mainElement = document.querySelector(".main");
   const icons = {
     success: "fa-solid fa-circle-check",
@@ -197,30 +202,31 @@ function toast({ title = "", message = "", type = "success" }) {
             </div>`;
     mainElement.appendChild(toast);
   }
-}
+};
 
 // Gọi hàm
-Validator({
+validator({
   form: "#form-sign-up",
+  //Mỗi hàm đều có return
   rules: [
-    Validator.isRequire("#fullname"), //Mỗi hàm đều có return
-    Validator.isValidName("#fullname"),
-    Validator.isRequire("#email"),
-    Validator.isEmail("#email"),
-    Validator.isRequire("#password"),
-    Validator.isStrongPassword("#password"),
-    Validator.isRequire("#password_confirmation"),
-    Validator.confirmed("#password_confirmation", () => {
+    validator.isRequire("#fullname"),
+    validator.isValidName("#fullname"),
+    validator.isRequire("#email"),
+    validator.isEmail("#email"),
+    validator.isRequire("#password"),
+    validator.isStrongPassword("#password"),
+    validator.isRequire("#password_confirmation"),
+    validator.confirmed("#password_confirmation", () => {
       return document.querySelector("#form-sign-up #password").value;
     }),
   ],
 });
-Validator({
+validator({
   form: "#form-sign-in",
   rules: [
-    Validator.isRequire("#email-sign-in"),
-    Validator.isEmail("#email-sign-in"),
-    Validator.isRequire("#password-sign-in"),
-    Validator.isStrongPassword("#password-sign-in"),
+    validator.isRequire("#email-sign-in"),
+    validator.isEmail("#email-sign-in"),
+    validator.isRequire("#password-sign-in"),
+    validator.isStrongPassword("#password-sign-in"),
   ],
 });
