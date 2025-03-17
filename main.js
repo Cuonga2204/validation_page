@@ -1,6 +1,11 @@
-function validator(options) {
-  //Biến để lưu các rules làm để không bị ghi đè 2 rules lên cùng một element
-  let selectorRules = {};
+const REGEX = {
+  VALID_NAME: /^[A-Za-zÀ-ỹ\s]+$/,
+  EMAIL: /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/,
+  STRONG_PASSWORD: /^(?=.*[A-Z])(?=.*[a-z])(?=.*\W).{8,}$/,
+};
+
+const validator = (options) => {
+  const selectorRules = {};
 
   const validate = (inputElement, rule) => {
     const errorElement =
@@ -10,12 +15,10 @@ function validator(options) {
 
     for (let i = 0; i < rules.length; i++) {
       errorMessage = rules[i](inputElement.value);
-      //xuất hiện lỗi thì hiện ngay message
       if (errorMessage) break;
     }
 
     if (errorMessage) {
-      // thêm màu đỏ và hiện message lỗi ở dưới input
       errorElement.innerText = errorMessage;
       inputElement.parentElement.classList.add("invalid");
       errorElement.parentElement.classList.add("invalid");
@@ -31,10 +34,9 @@ function validator(options) {
   const formElement = document.querySelector(options.form);
 
   if (formElement) {
-    // Xử lý khi ấn submit
     formElement.onsubmit = (e) => {
-      let formValid = true;
       e.preventDefault();
+      let formValid = true;
       options.rules.forEach((rule) => {
         const inputElement = formElement.querySelector(rule.selector);
         const isValid = validate(inputElement, rule);
@@ -42,27 +44,13 @@ function validator(options) {
           formValid = false;
         }
       });
-
-      if (formValid) {
-        toast({
+      if (formValid && formElement.name === "đăng ký") {
+        showNotification({
           title: "Thành công",
           message: `${formElement.name} thành công`,
-          type: "success",
+          type: "success"
         });
-        if (formElement.name == "đăng ký") {
-          // đăng ký thành công thì chuyển form đăng nhập
-          setTimeout(() => {
-            const container = document.querySelector(".container");
-            container.classList.remove("active");
-            resetForm("form-sign-up");
-          }, 1500);
-        }
-      } else {
-        toast({
-          title: "Thất bại",
-          message: `${formElement.name} thất bại`,
-          type: "error",
-        });
+        resetForm("form-sign-up");
       }
     };
     options.rules.forEach((rule) => {
@@ -71,17 +59,14 @@ function validator(options) {
         inputElement.parentElement.querySelector(".form-message");
 
       if (!selectorRules[rule.selector]) {
-        // Kiểm tra nếu chưa tồn tại thì tạo mảng
         selectorRules[rule.selector] = [];
       }
       selectorRules[rule.selector].push(rule.test);
 
       if (inputElement) {
-        //Khi blur vào thì check lỗi
         inputElement.onblur = () => {
           validate(inputElement, rule);
         };
-        //khi nhập input thì bỏ màu đỏ và message lỗi đi
         inputElement.oninput = () => {
           inputElement.parentElement.classList.remove("invalid");
           errorElement.innerText = "";
@@ -89,9 +74,7 @@ function validator(options) {
       }
     });
   }
-}
-
-// Các function để test lỗi
+};
 
 validator.isRequire = (selector) => {
   return {
@@ -106,8 +89,7 @@ validator.isValidName = (selector) => {
   return {
     selector: selector,
     test: (value) => {
-      const regex = /^[A-Za-zÀ-ỹ\s]+$/;
-      return regex.test(value)
+      return REGEX.VALID_NAME.test(value)
         ? undefined
         : "Tên không được chứa số hoặc ký tự đặc biệt";
     },
@@ -118,8 +100,7 @@ validator.isEmail = (selector) => {
   return {
     selector: selector,
     test: (value) => {
-      const regex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
-      return regex.test(value) ? undefined : "Email không hợp lệ";
+      return REGEX.EMAIL.test(value) ? undefined : "Email không hợp lệ";
     },
   };
 };
@@ -128,8 +109,7 @@ validator.isStrongPassword = (selector) => {
   return {
     selector: selector,
     test: (value) => {
-      const regex = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\W).{8,}$/;
-      return regex.test(value)
+      return REGEX.STRONG_PASSWORD.test(value)
         ? undefined
         : "Mật khẩu ít nhất 8 ký tự, có chữ hoa, chữ thường, ký tự đặc biệt";
     },
@@ -145,17 +125,14 @@ validator.confirmed = (selector, getConfirmValue) => {
     },
   };
 };
-//Ham reset form khi switch giữa các form
 const resetForm = (idForm = "") => {
   const formElement = document.getElementById(idForm);
   if (formElement) {
     formElement.reset();
 
-    // Xoa hết các màu đỏ thông báo lỗi
     const invalidElements = formElement.querySelectorAll(".invalid");
     invalidElements.forEach((element) => element.classList.remove("invalid"));
 
-    // Xoá các message báo lỗi
     const errorMessages = formElement.querySelectorAll(".form-message");
     errorMessages.forEach((error) => (error.innerText = ""));
   }
@@ -166,6 +143,7 @@ const resetForm = (idForm = "") => {
 const container = document.querySelector(".container");
 const registerBtn = document.querySelector(".switch_btn-signup");
 const loginBtn = document.querySelector(".switch_btn-login");
+const passWordSignUp = document.querySelector("#form-sign-up #password");
 
 registerBtn.addEventListener("click", () => {
   container.classList.add("active");
@@ -177,9 +155,7 @@ loginBtn.addEventListener("click", () => {
   resetForm("form-sign-up");
 });
 
-//toast thông báo khi thành công hay thất bại sau khi submit
-
-const toast = ({ title = "", message = "", type = "success" }) => {
+const showNotification = ({ title = "", message = "", type = "success" }) => {
   const mainElement = document.querySelector(".main");
   const icons = {
     success: "fa-solid fa-circle-check",
@@ -187,27 +163,25 @@ const toast = ({ title = "", message = "", type = "success" }) => {
   };
   const icon = icons[type];
   if (mainElement) {
-    const toast = document.createElement("div");
-    toast.classList.add("toast", `toast--${type}`);
+    const notify = document.createElement("div");
+    notify.classList.add("notify", `notify--${type}`);
 
-    toast.innerHTML = `<div class="toast__icon">
+    notify.innerHTML = `<div class="notify__icon">
                 <i class="${icon}"></i>
             </div>
-            <div class="toast__body">
-                <h3 class="toast__tile">${title}</h3>
-                <span class="toast__message">${message}</span>
+            <div class="notify__body">
+                <h3 class="notify__tile">${title}</h3>
+                <span class="notify__message">${message}</span>
             </div>
-            <div class="toast_close">
+            <div class="notify_close">
                 <i class="fa-solid fa-xmark"></i>
             </div>`;
-    mainElement.appendChild(toast);
+    mainElement.appendChild(notify);
   }
 };
 
-// Gọi hàm
 validator({
   form: "#form-sign-up",
-  //Mỗi hàm đều có return
   rules: [
     validator.isRequire("#fullname"),
     validator.isValidName("#fullname"),
@@ -216,8 +190,9 @@ validator({
     validator.isRequire("#password"),
     validator.isStrongPassword("#password"),
     validator.isRequire("#password_confirmation"),
+    validator.isStrongPassword("#password_confirmation"),
     validator.confirmed("#password_confirmation", () => {
-      return document.querySelector("#form-sign-up #password").value;
+      return passWordSignUp.value;
     }),
   ],
 });
